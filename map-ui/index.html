@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Limpopo Route Explorer</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-hover: #1557b0;
+            --bg-color: #ffffff;
+            --text-main: #202124;
+            --text-muted: #5f6368;
+            --border: #dadce0;
+            --accent-green: #188038;
+            --accent-red: #d93025;
+            --shadow: 0 1px 2px rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            color: var(--text-main);
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Side Panel */
+        .sidebar {
+            width: 360px;
+            background: var(--bg-color);
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--primary);
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .content {
+            padding: 24px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* Server Status */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #f1f3f4;
+            margin-bottom: 24px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .status-dot.online { background-color: var(--accent-green); }
+        .status-dot.offline { background-color: var(--accent-red); }
+
+        /* Profile Selection */
+        .profile-selector {
+            display: flex;
+            background: #f1f3f4;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+
+        .profile-btn {
+            flex: 1;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.875rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .profile-btn.active {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Route Inputs */
+        .input-group {
+            position: relative;
+            margin-bottom: 16px;
+            padding-left: 28px;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-start { border: 2px solid var(--primary); }
+        .icon-end { background-color: var(--accent-red); }
+
+        .input-line {
+            position: absolute;
+            left: 7px;
+            top: 24px;
+            bottom: -8px;
+            width: 2px;
+            background-color: var(--border);
+            z-index: -1;
+        }
+
+        .location-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            background: #f8f9fa;
+        }
+
+        .location-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #fff;
+        }
+
+        .location-input.active-step {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+            background: #fff;
+        }
+
+        /* Buttons */
+        .primary-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .primary-btn:hover { background: var(--primary-hover); }
+
+        .secondary-btn {
+            width: 100%;
+            padding: 10px;
+            background: white;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+
+        .secondary-btn:hover { background: #f8f9fa; color: var(--text-main); }
+
+        /* Route Stats */
+        .route-stats {
+            display: none;
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-main {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--accent-green);
+            margin-bottom: 4px;
+        }
+
+        .stat-sub {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Map Container */
+        #map-container {
+            flex-grow: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Floating Locate Button on Map */
+        .locate-control {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: none;
+        }
+
+        .locate-control:hover {
+            transform: scale(1.05);
+            background: #f8f9fa;
+        }
+
+        .locate-control svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-muted);
+            transition: fill 0.2s;
+        }
+
+        .locate-control.active svg { fill: var(--primary); }
+        .locate-control.loading svg { animation: spin 1s linear infinite; }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* User Location Marker */
+        .user-location-marker {
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(26,115,232,0.5);
+        }
+
+        .pulse-ring {
+            content: '';
+            width: 32px;
+            height: 32px;
+            background: rgba(26,115,232,0.3);
+            border-radius: 50%;
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            animation: pulsate 2s ease-out infinite;
+            z-index: -1;
+        }
+
+        @keyframes pulsate {
+            0% { transform: scale(0.5); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="header">
+            <h1>Limpopo Maps</h1>
+            <p class="subtitle">Local OpenRouteService Instance</p>
+        </div>
+        
+        <div class="content">
+            <div class="status-badge">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Checking server...</span>
+            </div>
+
+            <div class="profile-selector">
+                <button class="profile-btn active" data-profile="driving-car">Driving</button>
+                <button class="profile-btn" data-profile="foot-walking">Walking</button>
+            </div>
+
+            <div style="position: relative;">
+                <div class="input-line"></div>
+                
+                <div class="input-group">
+                    <div class="input-icon icon-start"></div>
+                    <input type="text" class="location-input active-step" id="startInput" placeholder="Click map to set start point..." readonly>
+                </div>
+                
+                <div class="input-group">
+                    <div class="input-icon icon-end"></div>
+                    <input type="text" class="location-input" id="endInput" placeholder="Click map to set destination..." readonly>
+                </div>
+            </div>
+
+            <button class="primary-btn" id="btnLocateMe">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+                Use My Current Location
+            </button>
+
+            <button class="secondary-btn" id="btnReset" onclick="resetMap()">Reset All</button>
+
+            <div class="route-stats" id="routeStats">
+                <div class="stat-main" id="timeValue">--</div>
+                <div class="stat-sub" id="distValue">--</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div id="map"></div>
+        <button class="locate-control" id="mapLocateBtn" title="Find my location">
+            <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
+        </button>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Limpopo center coordinates (Polokwane)
+        const map = L.map('map').setView([-23.9045, 29.4689], 8);
+
+        // Base Layers
+        const osmStreets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        });
+
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            maxZoom: 19
+        });
+
+        const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            subdomains: 'abcd',
+            maxZoom: 20
+        });
+
+        const baseMaps = {
+            "Streets": osmStreets,
+            "Satellite": satellite,
+            "Light/Minimal": cartoLight
+        };
+
+        // Set default layer
+        osmStreets.addTo(map);
+        
+        // Add layer control
+        L.control.layers(baseMaps, null, {position: 'topright'}).addTo(map);
+
+        let startMarker = null;
+        let endMarker = null;
+        let userMarker = null;
+        let routeLayer = null;
+        let currentProfile = 'driving-car';
+        let currentStep = 'start'; // 'start' or 'end'
+
+        // --- API CONFIGURATION ---
+        // For LOCAL testing, use: http://localhost:8080/ors/v2
+        // For PRODUCTION (Railway), replace this with your Railway URL (e.g., https://your-app.up.railway.app/ors/v2)
+        const ORS_BASE_URL = 'http://localhost:8080/ors/v2';
+        const startInput = document.getElementById('startInput');
+        const endInput = document.getElementById('endInput');
+
+        // Check Server Status
+        async function checkServer() {
+            try {
+                const response = await fetch(`${ORS_BASE_URL}/health`);
+                const data = await response.json();
+                if (data.status === 'ready') {
+                    document.getElementById('statusText').innerText = 'Local API Connected';
+                    document.getElementById('statusDot').className = 'status-dot online';
+                }
+            } catch (err) {
+                document.getElementById('statusText').innerText = 'Local API Offline';
+                document.getElementById('statusDot').className = 'status-dot offline';
+            }
+        }
+
+        checkServer();
+
+        // Profile Selection
+        document.querySelectorAll('.profile-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentProfile = e.target.getAttribute('data-profile');
+                if (startMarker && endMarker) {
+                    calculateRoute();
+                }
+            });
+        });
+
+        // Custom Icons
+        const startIcon = L.divIcon({
+            html: '<div style="width: 16px; height: 16px; background: white; border: 3px solid #1a73e8; border-radius: 50%;"></div>',
+            className: '',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+
+        const endIcon = L.divIcon({
+            html: '<div style="width: 16px; height: 16px; background: #d93025; border-radius: 50%;"></div>',
+            className: '',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+
+        const userLocationIcon = L.divIcon({
+            html: '<div class="user-location-marker"><div class="pulse-ring"></div></div>',
+            className: '',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+
+        // Map Click Handler
+        map.on('click', function(e) {
+            const latlng = e.latlng;
+
+            if (currentStep === 'start') {
+                if (startMarker) map.removeLayer(startMarker);
+                startMarker = L.marker(latlng, { icon: startIcon, title: "Start" }).addTo(map);
+                startInput.value = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+                
+                // Move to next step
+                currentStep = 'end';
+                startInput.classList.remove('active-step');
+                endInput.classList.add('active-step');
+                
+                if (endMarker) calculateRoute();
+            } else if (currentStep === 'end') {
+                if (endMarker) map.removeLayer(endMarker);
+                endMarker = L.marker(latlng, { icon: endIcon, title: "End" }).addTo(map);
+                endInput.value = `${latlng.lat.toFixed(5)}, ${latlng.lng.toFixed(5)}`;
+                
+                endInput.classList.remove('active-step');
+                calculateRoute();
+            }
+        });
+
+        // Input Focus Handlers
+        startInput.addEventListener('click', () => {
+            currentStep = 'start';
+            startInput.classList.add('active-step');
+            endInput.classList.remove('active-step');
+        });
+
+        endInput.addEventListener('click', () => {
+            currentStep = 'end';
+            endInput.classList.add('active-step');
+            startInput.classList.remove('active-step');
+        });
+
+        // Geolocation Logic
+        const btnLocateMe = document.getElementById('btnLocateMe');
+        const mapLocateBtn = document.getElementById('mapLocateBtn');
+
+        function locateUser(setAsStart = false) {
+            btnLocateMe.innerHTML = 'Locating...';
+            mapLocateBtn.classList.add('loading');
+
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your browser");
+                resetLocateButtons();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latlng = L.latlng(position.coords.latitude, position.coords.longitude);
+                    
+                    if (userMarker) map.removeLayer(userMarker);
+                    userMarker = L.marker(latlng, { icon: userLocationIcon }).addTo(map);
+                    
+                    map.setView(latlng, 15);
+                    resetLocateButtons();
+                    mapLocateBtn.classList.add('active');
+
+                    if (setAsStart) {
+                        if (startMarker) map.removeLayer(startMarker);
+                        startMarker = L.marker(latlng, { icon: startIcon, title: "Start" }).addTo(map);
+                        startInput.value = "My Location";
+                        
+                        currentStep = 'end';
+                        startInput.classList.remove('active-step');
+                        endInput.classList.add('active-step');
+                        
+                        if (endMarker) calculateRoute();
+                    }
+                },
+                (error) => {
+                    console.error(error);
+                    alert("Unable to retrieve your location. Please check browser permissions.");
+                    resetLocateButtons();
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        }
+
+        function resetLocateButtons() {
+            btnLocateMe.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg> Use My Current Location';
+            mapLocateBtn.classList.remove('loading');
+        }
+
+        btnLocateMe.addEventListener('click', () => locateUser(true));
+        mapLocateBtn.addEventListener('click', () => locateUser(false));
+
+        async function calculateRoute() {
+            if (!startMarker || !endMarker) return;
+
+            if (routeLayer) {
+                map.removeLayer(routeLayer);
+            }
+
+            const start = `${startMarker.getLatLng().lng},${startMarker.getLatLng().lat}`;
+            const end = `${endMarker.getLatLng().lng},${endMarker.getLatLng().lat}`;
+            
+            const url = `${ORS_BASE_URL}/directions/${currentProfile}?start=${start}&end=${end}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json, application/geo+json'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message || `API returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Draw route
+                const coordinates = data.features[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
+                routeLayer = L.polyline(coordinates, {
+                    color: '#1a73e8',
+                    weight: 5,
+                    opacity: 0.9,
+                    lineJoin: 'round'
+                }).addTo(map);
+
+                map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+
+                // Update stats
+                const summary = data.features[0].properties.segments[0];
+                const distanceKm = (summary.distance / 1000).toFixed(1);
+                const durationMins = Math.round(summary.duration / 60);
+
+                document.getElementById('routeStats').style.display = 'block';
+                document.getElementById('distValue').innerText = `${distanceKm} km distance`;
+                
+                if (durationMins < 60) {
+                    document.getElementById('timeValue').innerText = `${durationMins} min`;
+                } else {
+                    const hrs = Math.floor(durationMins / 60);
+                    const mins = durationMins % 60;
+                    document.getElementById('timeValue').innerText = `${hrs} h ${mins} min`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert(`Routing Error: ${error.message}\nMake sure both points are within the Limpopo road network.`);
+            }
+        }
+
+        function resetMap() {
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+            if (routeLayer) map.removeLayer(routeLayer);
+            if (userMarker) map.removeLayer(userMarker);
+            
+            startMarker = null;
+            endMarker = null;
+            
+            startInput.value = '';
+            endInput.value = '';
+            
+            currentStep = 'start';
+            startInput.classList.add('active-step');
+            endInput.classList.remove('active-step');
+
+            document.getElementById('routeStats').style.display = 'none';
+            mapLocateBtn.classList.remove('active');
+            map.setView([-23.9045, 29.4689], 8);
+        }
+    </script>
+</body>
+</html>

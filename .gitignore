@@ -1,0 +1,12 @@
+# Ignore large ORS generated directories
+ors-docker/graphs/
+ors-docker/elevation_cache/
+ors-docker/logs/
+
+# Ignore old backup osm files (only keep the active limpopo.osm.pbf if needed)
+*.osm
+south-africa-latest.osm.pbf
+
+# System files
+.DS_Store
+Thumbs.db
