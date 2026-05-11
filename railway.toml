@@ -6,7 +6,9 @@ dockerfilePath = "Dockerfile"
 startCommand = ""
 restartPolicyType = "on_failure"
 healthcheckPath = "/ors/v2/health"
-healthcheckTimeout = 300
+# ORS rebuilds graphs from the Limpopo PBF on every Railway deploy (~3-5 min).
+# 600s gives generous buffer; the previous 300s was right at the edge.
+healthcheckTimeout = 600
 
 [env]
 PORT = "8082"

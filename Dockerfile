@@ -7,9 +7,12 @@ COPY ./ors-docker/config/ors-config.yml /home/ors/config/ors-config.yml
 COPY ./ors-docker/files/limpopo.osm.pbf /home/ors/files/limpopo.osm.pbf
 
 ENV ORS_CONFIG_LOCATION=/home/ors/config/ors-config.yml
-# Graphs are persisted in the image layer; rebuild only when the .pbf or config
-# changes (bump this or set REBUILD_GRAPHS=True at runtime to force).
+# On Railway the container filesystem is ephemeral, so graphs are rebuilt on
+# every deploy. REBUILD_GRAPHS=False just avoids forcing a rebuild when graphs
+# already exist (e.g. when running locally with a volume).
 ENV REBUILD_GRAPHS=False
-ENV XMS=512m
-ENV XMX=1500m
+# Tuned for Railway hobby plan (~500 MB container). Do NOT raise XMX above 1g
+# without also upgrading the plan — the JVM will OOM during graph build.
+ENV XMS=256m
+ENV XMX=1g
 ENV CONTAINER_LOG_LEVEL=INFO
