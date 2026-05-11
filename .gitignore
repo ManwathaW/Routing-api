@@ -10,3 +10,7 @@ south-africa-latest.osm.pbf
 # System files
 .DS_Store
 Thumbs.db
+
+# Claude Code local state (per-user permission grants, etc.)
+.claude/settings.local.json
+.claude/worktrees/
