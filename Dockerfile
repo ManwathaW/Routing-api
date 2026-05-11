@@ -11,8 +11,10 @@ ENV ORS_CONFIG_LOCATION=/home/ors/config/ors-config.yml
 # restarts. With REBUILD_GRAPHS=False, ORS builds graphs on first start (when
 # the volume is empty) and reuses them on every subsequent restart.
 ENV REBUILD_GRAPHS=False
-# Tuned for Railway hobby plan (~500 MB container). Do NOT raise XMX above 1g
-# without also upgrading the plan — the JVM will OOM during graph build.
-ENV XMS=256m
-ENV XMX=1g
+# Tuned for Railway hobby plan. railway.toml [env] also pins these (and wins
+# over Dockerfile ENV at runtime). Anything larger than XMX=400m gets the JVM
+# OOM-killed by the container even when heap "Used" looks fine, because
+# native + metaspace + GC overhead push real RSS past the container limit.
+ENV XMS=200m
+ENV XMX=400m
 ENV CONTAINER_LOG_LEVEL=INFO

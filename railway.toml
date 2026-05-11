@@ -12,3 +12,11 @@ healthcheckTimeout = 600
 
 [env]
 PORT = "8082"
+# These override the Dockerfile ENV values. The working production deploy
+# ran with XMS=200m / XMX=400m — anything larger gets the JVM OOM-killed by
+# the container even when "heap Used" shows headroom (native + metaspace +
+# GC overhead push real RSS past the container limit). Don't raise these
+# without upgrading the Railway plan.
+XMS = "200m"
+XMX = "400m"
+CONTAINER_LOG_LEVEL = "INFO"
