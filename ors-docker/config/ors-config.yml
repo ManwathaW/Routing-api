@@ -8,9 +8,13 @@ ors:
     allowed_headers: Content-Type, X-Requested-With, accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization
     preflight_max_age: 600
   engine:
+    elevation:
+      preprocessed: false
+      provider: none
     profile_default:
       build:
         source_file: /home/ors/files/limpopo.osm.pbf
+        elevation: false
       service:
         maximum_distance: 1000000
         maximum_waypoints: 100

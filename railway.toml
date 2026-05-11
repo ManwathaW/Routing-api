@@ -3,11 +3,10 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "" # Uses the default ENTRYPOINT from the openrouteservice Docker image
+startCommand = ""
 restartPolicyType = "on_failure"
+healthcheckPath = "/ors/v2/health"
+healthcheckTimeout = 300
 
 [env]
-XMS = "200m"
-XMX = "400m"
 PORT = "8082"
-CONTAINER_LOG_LEVEL = "INFO"
