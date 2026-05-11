@@ -10,7 +10,7 @@ COPY ./ors-docker/config/ors-config.yml /home/ors/ors-core/openrouteservice/src/
 
 # Copy the Limpopo map data into the container
 RUN mkdir -p /home/ors/files
-COPY ./ors-docker/files/limpopo.osm.pbf /home/ors/files/limpopo.osm.pbf
+COPY ./ors-docker/files/south-africa-latest.osm.pbf /home/ors/files/south-africa-latest.osm.pbf
 
 # Set environment variables for ORS to find the files
 ENV ORS_CONFIG_LOCATION=/home/ors/ors-core/openrouteservice/src/main/resources/ors-config.yml

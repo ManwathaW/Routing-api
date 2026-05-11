@@ -8,6 +8,6 @@ restartPolicyType = "on_failure"
 
 [env]
 XMS = "1g"
-XMX = "2g"
+XMX = "3g"
 PORT = "8082"
 CONTAINER_LOG_LEVEL = "INFO"
