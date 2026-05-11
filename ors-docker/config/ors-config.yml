@@ -170,13 +170,13 @@ ors:
 #              weightings: recommended,shortest
 #              landmarks: 16
 #      service:
-        maximum_distance: 500000
-        maximum_distance_dynamic_weights: 500000
-        maximum_distance_avoid_areas: 500000
-        maximum_waypoints: 50
-        maximum_snapping_radius: 400
-        maximum_distance_alternative_routes: 500000
-        maximum_distance_round_trip_routes: 500000
+#        maximum_distance: 500000
+#        maximum_distance_dynamic_weights: 500000
+#        maximum_distance_avoid_areas: 500000
+#        maximum_waypoints: 50
+#        maximum_snapping_radius: 400
+#        maximum_distance_alternative_routes: 500000
+#        maximum_distance_round_trip_routes: 500000
 #        maximum_visited_nodes: 1000000
 #        force_turn_costs: false
 #        allow_custom_models: true

@@ -14,8 +14,8 @@
 | **Region** | Limpopo Province, South Africa |
 | **Bounding Box** | `26.7000, -25.0000` → `31.8000, -22.1000` |
 | **Data Source** | OpenStreetMap (Overpass API export) |
-| **Data Format** | `.osm` (XML) |
-| **Data Size** | ~33.8 MB |
+| **Data Format** | `.osm.pbf` (Protocol Buffer) |
+| **Data Size** | ~33 MB |
 | **API Port** | `8080` (mapped from container port `8082`) |
 | **Monitoring Port** | `9001` (optional) |
 | **API Base URL** | `http://localhost:8080/ors/v2/` |
@@ -63,8 +63,8 @@ These profiles can be enabled in `ors-docker/config/ors-config.yml`:
 | Property | Value |
 |---|---|
 | **Source File** | `limpopo.osm.pbf` |
-| **Format** | OpenStreetMap XML |
-| **Size** | 5,394,878 bytes (~5.1 MB) |
+| **Format** | OpenStreetMap PBF |
+| **Size** | ~33 MB |
 | **Region** | Limpopo Province |
 | **Latitude Range** | -25.0 to -22.1 |
 | **Longitude Range** | 26.7 to 31.8 |
@@ -94,14 +94,14 @@ These profiles can be enabled in `ors-docker/config/ors-config.yml`:
 Local maps/
 │
 ├── README.md                        ← This file
-├── openrouteservice-file-structure.md  ← Detailed file-by-file breakdown
-├── docker-compose.yml               ← Docker Compose config
-├── limpopo.osm.pbf                  ← Raw OSM data (backup)
+├── Dockerfile                       ← Railway / production image build
+├── docker-compose.yml               ← Local Docker Compose config
+├── railway.toml                     ← Railway service config
 │
 ├── map-ui/
 │   └── index.html                   ← Interactive Leaflet map UI for testing routes
 │
-└── ors-docker/                      ← ORS runtime directory (mounted into container)
+└── ors-docker/                      ← ORS runtime directory (mounted into container locally)
     ├── config/
     │   ├── ors-config.yml           ← Active configuration
     │   ├── example-ors-config.yml   ← Full reference config
@@ -109,12 +109,9 @@ Local maps/
     ├── files/
     │   ├── limpopo.osm.pbf          ← Map data used by ORS
     │   └── example-heidelberg.test.pbf  ← Default test data
-    ├── elevation_cache/             ← SRTM elevation tiles (auto-downloaded)
-    ├── graphs/                      ← Pre-built routing graphs
-    │   ├── driving-car/             ← Vehicle routing graph
-    │   └── foot-walking/            ← Pedestrian routing graph
-    └── logs/
-        └── ors.log                  ← Application log
+    ├── elevation_cache/             ← SRTM elevation tiles (auto-downloaded, gitignored)
+    ├── graphs/                      ← Pre-built routing graphs (auto-built, gitignored)
+    └── logs/                        ← Application logs (gitignored)
 ```
 
 ---
@@ -303,12 +300,16 @@ You can host the frontend on Railway from the exact same repository!
 6. Go to **Networking** for this frontend service and **Generate Domain**. This is your public website URL!
 
 ### Step 4: Connect Them
-1. Open your local `map-ui/index.html` file.
-2. Change the `ORS_BASE_URL` to the backend domain you generated in Step 2:
-   ```javascript
-   const ORS_BASE_URL = 'https://your-backend-app.up.railway.app/ors/v2';
-   ```
-3. Commit and push this change to GitHub. Railway will automatically rebuild the frontend, and your live website will now talk to your live backend!
+The frontend resolves the API URL in this order:
+
+1. `?api=<url>` query string parameter (good for one-off testing)
+2. `window.ORS_BASE_URL` if set inline before the main script
+3. The production Railway URL hardcoded as `PROD_API`
+4. `http://localhost:8080/ors/v2` when served from `localhost` / `file://`
+
+To point the deployed frontend at a different backend, open `map-ui/index.html` and update the `PROD_API` constant, then commit and push. Railway will rebuild automatically.
+
+To test the deployed frontend against your local backend without editing code, append `?api=http://localhost:8080/ors/v2` to the URL.
 
 ---
 

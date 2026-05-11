@@ -413,9 +413,16 @@
         let currentStep = 'start'; // 'start' or 'end'
 
         // --- API CONFIGURATION ---
-        // For LOCAL testing, use: http://localhost:8080/ors/v2
-        // For PRODUCTION (Railway), replace this with your Railway URL (e.g., https://your-app.up.railway.app/ors/v2)
-        const ORS_BASE_URL = 'https://routing-api-production-e9c5.up.railway.app/ors/v2';
+        // Resolution order:
+        //   1. ?api=<url> query parameter (e.g. ?api=http://localhost:8080/ors/v2)
+        //   2. window.ORS_BASE_URL (set inline via a <script> if hosting yourself)
+        //   3. Production Railway backend (default)
+        //   4. http://localhost:8080/ors/v2 when running from file:// or localhost
+        const PROD_API = 'https://routing-api-production-e9c5.up.railway.app/ors/v2';
+        const LOCAL_API = 'http://localhost:8080/ors/v2';
+        const queryApi = new URLSearchParams(window.location.search).get('api');
+        const isLocalHost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+        const ORS_BASE_URL = queryApi || window.ORS_BASE_URL || (isLocalHost ? LOCAL_API : PROD_API);
         const startInput = document.getElementById('startInput');
         const endInput = document.getElementById('endInput');
 
@@ -425,11 +432,11 @@
                 const response = await fetch(`${ORS_BASE_URL}/health`);
                 const data = await response.json();
                 if (data.status === 'ready') {
-                    document.getElementById('statusText').innerText = 'Local API Connected';
+                    document.getElementById('statusText').innerText = 'API Connected';
                     document.getElementById('statusDot').className = 'status-dot online';
                 }
             } catch (err) {
-                document.getElementById('statusText').innerText = 'Local API Offline';
+                document.getElementById('statusText').innerText = 'API Offline';
                 document.getElementById('statusDot').className = 'status-dot offline';
             }
         }
@@ -524,7 +531,7 @@
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    const latlng = L.latlng(position.coords.latitude, position.coords.longitude);
+                    const latlng = L.latLng(position.coords.latitude, position.coords.longitude);
                     
                     if (userMarker) map.removeLayer(userMarker);
                     userMarker = L.marker(latlng, { icon: userLocationIcon }).addTo(map);
