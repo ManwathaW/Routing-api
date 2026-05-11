@@ -8,13 +8,9 @@ ors:
     allowed_headers: Content-Type, X-Requested-With, accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers, Authorization
     preflight_max_age: 600
   engine:
-    elevation:
-      preprocessed: false
-      provider: none
     profile_default:
       build:
         source_file: /home/ors/files/limpopo.osm.pbf
-        elevation: false
       service:
         maximum_distance: 1000000
         maximum_waypoints: 100
@@ -170,13 +166,13 @@ ors:
 #              weightings: recommended,shortest
 #              landmarks: 16
 #      service:
-#        maximum_distance: 500000
-#        maximum_distance_dynamic_weights: 500000
-#        maximum_distance_avoid_areas: 500000
-#        maximum_waypoints: 50
-#        maximum_snapping_radius: 400
-#        maximum_distance_alternative_routes: 500000
-#        maximum_distance_round_trip_routes: 500000
+        maximum_distance: 500000
+        maximum_distance_dynamic_weights: 500000
+        maximum_distance_avoid_areas: 500000
+        maximum_waypoints: 50
+        maximum_snapping_radius: 400
+        maximum_distance_alternative_routes: 500000
+        maximum_distance_round_trip_routes: 500000
 #        maximum_visited_nodes: 1000000
 #        force_turn_costs: false
 #        allow_custom_models: true
