@@ -7,7 +7,7 @@ startCommand = "" # Uses the default ENTRYPOINT from the openrouteservice Docker
 restartPolicyType = "on_failure"
 
 [env]
-XMS = "1g"
-XMX = "3g"
+XMS = "200m"
+XMX = "400m"
 PORT = "8082"
 CONTAINER_LOG_LEVEL = "INFO"

@@ -1,6 +1,6 @@
 # 🗺️ Local Maps — OpenRouteService
 
-> A self-hosted routing and navigation engine for **South Africa**.  
+> A self-hosted routing and navigation engine for the **Limpopo Province** in South Africa.  
 > Powered by [OpenRouteService](https://openrouteservice.org/) and [OpenStreetMap](https://www.openstreetmap.org/) data.
 
 ---
@@ -11,11 +11,11 @@
 |---|---|
 | **Engine** | OpenRouteService v9.9.0 |
 | **Runtime** | Docker (via Docker Compose) |
-| **Region** | South Africa |
-| **Bounding Box** | `-34.8, 16.4` → `-22.1, 32.9` |
+| **Region** | Limpopo Province, South Africa |
+| **Bounding Box** | `26.7000, -25.0000` → `31.8000, -22.1000` |
 | **Data Source** | OpenStreetMap (Overpass API export) |
 | **Data Format** | `.osm` (XML) |
-| **Data Size** | ~408 MB |
+| **Data Size** | ~33.8 MB |
 | **API Port** | `8080` (mapped from container port `8082`) |
 | **Monitoring Port** | `9001` (optional) |
 | **API Base URL** | `http://localhost:8080/ors/v2/` |
@@ -62,12 +62,12 @@ These profiles can be enabled in `ors-docker/config/ors-config.yml`:
 
 | Property | Value |
 |---|---|
-| **Source File** | `south-africa-latest.osm.pbf` |
+| **Source File** | `limpopo.osm.pbf` |
 | **Format** | OpenStreetMap XML |
-| **Size** | ~408 MB |
-| **Region** | South Africa |
-| **Latitude Range** | -34.8 to -22.1 |
-| **Longitude Range** | 16.4 to 32.9 |
+| **Size** | 5,394,878 bytes (~5.1 MB) |
+| **Region** | Limpopo Province |
+| **Latitude Range** | -25.0 to -22.1 |
+| **Longitude Range** | 26.7 to 31.8 |
 | **Provider** | Overpass API (overpass-api.de) |
 
 ### Elevation Data
@@ -83,8 +83,8 @@ These profiles can be enabled in `ors-docker/config/ors-config.yml`:
 
 | Profile | Approx. Size | Features |
 |---|---|---|
-| `driving-car` | ~1.2 GB | Edges, nodes, turn costs, CH/Core shortcuts, landmarks, toll/access data |
-| `foot-walking` | ~800 MB | Edges, nodes, hill index, trail difficulty, landmarks |
+| `driving-car` | ~25 MB | Edges, nodes, turn costs, CH/Core shortcuts, landmarks, toll/access data |
+| `foot-walking` | ~15 MB | Edges, nodes, hill index, trail difficulty, landmarks |
 
 ---
 
@@ -96,7 +96,7 @@ Local maps/
 ├── README.md                        ← This file
 ├── openrouteservice-file-structure.md  ← Detailed file-by-file breakdown
 ├── docker-compose.yml               ← Docker Compose config
-├── south-africa-latest.osm.pbf      ← Raw OSM data (backup)
+├── limpopo.osm.pbf                  ← Raw OSM data (backup)
 │
 ├── map-ui/
 │   └── index.html                   ← Interactive Leaflet map UI for testing routes
@@ -107,7 +107,7 @@ Local maps/
     │   ├── example-ors-config.yml   ← Full reference config
     │   └── example-ors-config.env   ← Environment variable reference
     ├── files/
-    │   ├── south-africa-latest.osm.pbf  ← Map data used by ORS
+    │   ├── limpopo.osm.pbf          ← Map data used by ORS
     │   └── example-heidelberg.test.pbf  ← Default test data
     ├── elevation_cache/             ← SRTM elevation tiles (auto-downloaded)
     ├── graphs/                      ← Pre-built routing graphs
@@ -124,8 +124,8 @@ Local maps/
 ### Prerequisites
 
 - **Docker Desktop** installed and running
-- **4 GB RAM** minimum (3-4 GB allocated to JVM recommended for South Africa)
-- **~3 GB disk space** (images + data + massive routing graphs)
+- **4 GB RAM** minimum (2 GB allocated to JVM)
+- **~600 MB disk space** (images + data + graphs)
 
 ### 1. Start the Service
 
@@ -137,8 +137,8 @@ docker compose up -d
 ### 2. Wait for Graphs to Build
 
 On first launch, ORS will:
-1. Download elevation data (~100+ MB) — takes several minutes
-2. Build national routing graphs — takes 5–10 minutes
+1. Download elevation data (~50 MB) — takes 2–5 minutes
+2. Build routing graphs — takes 1–3 minutes
 
 ### 3. Check Health
 
@@ -178,14 +178,14 @@ GET http://localhost:8080/ors/v2/directions/driving-car?start={lon},{lat}&end={l
 GET http://localhost:8080/ors/v2/directions/foot-walking?start={lon},{lat}&end={lon},{lat}
 ```
 
-### Example — Drive across South Africa (Cape Town to Johannesburg)
+### Example — Drive across Limpopo (Polokwane to Tzaneen)
 ```
-GET http://localhost:8080/ors/v2/directions/driving-car?start=18.4233,-33.9249&end=28.0473,-26.2041
+GET http://localhost:8080/ors/v2/directions/driving-car?start=29.4689,-23.9045&end=30.1600,-23.8300
 ```
 
-### Example — Walk across South Africa (Cape Town to Johannesburg)
+### Example — Walk across Limpopo (Polokwane to Tzaneen)
 ```
-GET http://localhost:8080/ors/v2/directions/foot-walking?start=18.4233,-33.9249&end=28.0473,-26.2041
+GET http://localhost:8080/ors/v2/directions/foot-walking?start=29.4689,-23.9045&end=30.1600,-23.8300
 ```
 
 ### Available Endpoints (When Enabled)
@@ -266,11 +266,11 @@ docker compose down
 | Component | Size |
 |---|---|
 | Docker image | ~350 MB |
-| OSM source data | ~408 MB |
-| Elevation cache | ~500 MB |
-| Driving-car graphs | ~1.2 GB |
-| Foot-walking graphs | ~800 MB |
-| **Total** | **~3.2 GB** |
+| OSM source data | ~33.8 MB |
+| Elevation cache | ~188 MB |
+| Driving-car graphs | ~25 MB |
+| Foot-walking graphs | ~15 MB |
+| **Total** | **~580 MB** |
 
 ---
 

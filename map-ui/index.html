@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>South Africa Route Explorer</title>
+    <title>Limpopo Route Explorer</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -319,7 +319,7 @@
 
     <div class="sidebar">
         <div class="header">
-            <h1>South Africa Maps</h1>
+            <h1>Limpopo Maps</h1>
             <p class="subtitle">Local OpenRouteService Instance</p>
         </div>
         
@@ -373,8 +373,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
-        // South Africa center coordinates (Bloemfontein)
-        const map = L.map('map').setView([-29.0852, 26.1596], 6);
+        // Limpopo center coordinates (Polokwane)
+        const map = L.map('map').setView([-23.9045, 29.4689], 8);
 
         // Base Layers
         const osmStreets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -617,7 +617,7 @@
 
             } catch (error) {
                 console.error(error);
-                alert(`Routing Error: ${error.message}\nMake sure both points are within the South Africa road network.`);
+                alert(`Routing Error: ${error.message}\nMake sure both points are within the Limpopo road network.`);
             }
         }
 
@@ -639,7 +639,7 @@
 
             document.getElementById('routeStats').style.display = 'none';
             mapLocateBtn.classList.remove('active');
-            map.setView([-29.0852, 26.1596], 6);
+            map.setView([-23.9045, 29.4689], 8);
         }
     </script>
 </body>
