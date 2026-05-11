@@ -1,17 +1,17 @@
 FROM openrouteservice/openrouteservice:v9.9.0
 
 # Railway will provide the PORT env var, but ORS runs on 8082 by default
-# We expose it so Railway can map it automatically
 EXPOSE 8082
 
-# Copy the configuration file into the container
-# ORS expects the config to be available either via mount or baked in
-COPY ./ors-docker/config/ors-config.yml /home/ors/ors-core/openrouteservice/src/main/resources/ors-config.yml
+# Copy the configuration file to where the entrypoint actually looks for it
+COPY ./ors-docker/config/ors-config.yml /home/ors/config/ors-config.yml
 
 # Copy the Limpopo map data into the container
-RUN mkdir -p /home/ors/files
 COPY ./ors-docker/files/limpopo.osm.pbf /home/ors/files/limpopo.osm.pbf
 
-# Set environment variables for ORS to find the files
-ENV ORS_CONFIG_LOCATION=/home/ors/ors-core/openrouteservice/src/main/resources/ors-config.yml
-ENV BUILD_GRAPHS=True
+# Tell ORS where to find the config
+ENV ORS_CONFIG_LOCATION=/home/ors/config/ors-config.yml
+ENV REBUILD_GRAPHS=True
+ENV XMS=200m
+ENV XMX=400m
+ENV CONTAINER_LOG_LEVEL=INFO
