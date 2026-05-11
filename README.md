@@ -285,22 +285,30 @@ This project is configured and ready to be deployed to Railway for free/low-cost
 4. Commit: `git commit -m "Initial commit"`
 5. Create a new repository on GitHub and follow their instructions to push this code.
 
-### Step 2: Deploy on Railway
+### Step 2: Deploy the Backend (OpenRouteService)
 1. Go to [Railway.app](https://railway.app/) and sign in with GitHub.
 2. Click **New Project** -> **Deploy from GitHub repo**.
-3. Select the repository you just created.
-4. Railway will automatically detect the `Dockerfile` and `railway.toml` and start building your OpenRouteService container.
-5. **Note:** The first build will take 3-5 minutes as ORS needs to download elevation data and build the Limpopo routing graphs in memory.
+3. Select your repository.
+4. Railway will automatically detect the `Dockerfile` in the root directory and start building the backend.
+5. **Note:** The first build will take 10-20 minutes as it downloads terrain and builds the national graphs.
+6. Once deployed, go to the service **Settings** -> **Networking** and click **Generate Domain**. Save this URL!
 
-### Step 3: Connect the Frontend
-1. Once Railway finishes deploying, go to the **Settings** tab of your service in Railway.
-2. Click **Generate Domain** under the Public Networking section. This is your public API URL.
-3. Open `map-ui/index.html` locally.
-4. Change the `ORS_BASE_URL` constant (around line 394) to match your new Railway domain:
+### Step 3: Deploy the Frontend (Map UI)
+You can host the frontend on Railway from the exact same repository!
+1. In your Railway Project dashboard, click the **New** button (top right).
+2. Select **GitHub Repo** and choose the same repository again.
+3. Railway will add a second service. Before it builds, click on this new service, go to **Settings**.
+4. Scroll down to **Root Directory** and change it to `/map-ui`.
+5. Railway will instantly recognize it as a static website and deploy it using a fast web server.
+6. Go to **Networking** for this frontend service and **Generate Domain**. This is your public website URL!
+
+### Step 4: Connect Them
+1. Open your local `map-ui/index.html` file.
+2. Change the `ORS_BASE_URL` to the backend domain you generated in Step 2:
    ```javascript
-   const ORS_BASE_URL = 'https://your-railway-app.up.railway.app/ors/v2';
+   const ORS_BASE_URL = 'https://your-backend-app.up.railway.app/ors/v2';
    ```
-5. You can now host the `map-ui` folder anywhere (Vercel, Netlify, GitHub Pages) and it will talk to your Railway backend!
+3. Commit and push this change to GitHub. Railway will automatically rebuild the frontend, and your live website will now talk to your live backend!
 
 ---
 

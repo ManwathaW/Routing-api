@@ -8,9 +8,9 @@ EXPOSE 8082
 # ORS expects the config to be available either via mount or baked in
 COPY ./ors-docker/config/ors-config.yml /home/ors/ors-core/openrouteservice/src/main/resources/ors-config.yml
 
-# Copy the Limpopo map data into the container
-RUN mkdir -p /home/ors/files
-COPY ./ors-docker/files/south-africa-latest.osm.pbf /home/ors/files/south-africa-latest.osm.pbf
+# Download the South Africa map data directly from Geofabrik to bypass GitHub size limits
+RUN mkdir -p /home/ors/files && \
+    wget -O /home/ors/files/south-africa-latest.osm.pbf https://download.geofabrik.de/africa/south-africa-latest.osm.pbf
 
 # Set environment variables for ORS to find the files
 ENV ORS_CONFIG_LOCATION=/home/ors/ors-core/openrouteservice/src/main/resources/ors-config.yml
