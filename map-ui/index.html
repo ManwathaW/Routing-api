@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a73e8">
     <title>Limpopo Route Explorer</title>
     
     <!-- Leaflet CSS -->
@@ -41,12 +42,86 @@
         /* Side Panel */
         .sidebar {
             width: 360px;
+            flex-shrink: 0;
             background: var(--bg-color);
             box-shadow: 2px 0 8px rgba(0,0,0,0.1);
-            z-index: 1000;
+            z-index: 1500;
             display: flex;
             flex-direction: column;
             position: relative;
+            transition: margin-left 0.3s ease, transform 0.3s ease;
+        }
+
+        /* Collapsed state on desktop: slide off-screen left */
+        body[data-sidebar-open="false"] .sidebar {
+            margin-left: -360px;
+        }
+
+        /* Chevron toggle attached to right edge of sidebar (desktop) */
+        .sidebar-toggle {
+            position: absolute;
+            top: 84px;
+            right: -16px;
+            width: 32px;
+            height: 56px;
+            background: var(--bg-color);
+            border: 1px solid var(--border);
+            border-left: none;
+            border-radius: 0 12px 12px 0;
+            cursor: pointer;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 2px 6px rgba(0,0,0,0.08);
+            padding: 0;
+        }
+
+        .sidebar-toggle:hover { background: #f8f9fa; }
+
+        .sidebar-toggle svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        body[data-sidebar-open="false"] .sidebar-toggle svg {
+            transform: rotate(180deg);
+        }
+
+        /* Floating menu button on the map — shown when sidebar is closed */
+        .sidebar-open-btn {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            width: 48px;
+            height: 48px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            z-index: 1600;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .sidebar-open-btn:hover { transform: scale(1.05); }
+
+        .sidebar-open-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-main);
+        }
+
+        body[data-sidebar-open="false"] .sidebar-open-btn { display: flex; }
+
+        /* Backdrop for mobile when sidebar is open */
+        .backdrop {
+            display: none;
         }
 
         .header {
@@ -313,14 +388,111 @@
             100% { transform: scale(1.5); opacity: 0; }
         }
 
+        /* ---------- Mobile ---------- */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: min(360px, 88vw);
+                height: 100dvh;
+                /* Override desktop's margin-based collapse; use transform on mobile */
+                margin-left: 0 !important;
+                transition: transform 0.3s ease;
+            }
+
+            body[data-sidebar-open="false"] .sidebar {
+                transform: translateX(-100%);
+            }
+
+            /* Hide the edge chevron on mobile — close via backdrop tap or back button */
+            .sidebar-toggle {
+                display: none;
+            }
+
+            /* Add a close button inside the header on mobile */
+            .header {
+                padding: 16px 16px 12px;
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 12px;
+            }
+
+            .header-text { flex: 1; min-width: 0; }
+
+            .sidebar-close-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: transparent;
+                border: none;
+                width: 36px;
+                height: 36px;
+                border-radius: 50%;
+                cursor: pointer;
+                color: var(--text-muted);
+                flex-shrink: 0;
+            }
+
+            .sidebar-close-btn:hover { background: #f1f3f4; }
+
+            .sidebar-close-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+            h1 { font-size: 1.25rem; }
+            .subtitle { font-size: 0.8125rem; }
+            .content { padding: 16px; }
+
+            /* Backdrop only relevant on mobile */
+            .backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.45);
+                z-index: 1400;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+
+            body[data-sidebar-open="true"] .backdrop {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            /* Make floating buttons safe from notches */
+            .sidebar-open-btn {
+                top: max(16px, env(safe-area-inset-top));
+                left: max(16px, env(safe-area-inset-left));
+            }
+
+            .locate-control {
+                bottom: max(20px, env(safe-area-inset-bottom));
+                right: max(16px, env(safe-area-inset-right));
+            }
+        }
+
+        /* Hide mobile-only close button on desktop */
+        @media (min-width: 769px) {
+            .sidebar-close-btn { display: none; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Hide panel" title="Hide panel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg>
+        </button>
         <div class="header">
-            <h1>Limpopo Maps</h1>
-            <p class="subtitle">Local OpenRouteService Instance</p>
+            <div class="header-text">
+                <h1>Limpopo Maps</h1>
+                <p class="subtitle">Local OpenRouteService Instance</p>
+            </div>
+            <button class="sidebar-close-btn" id="sidebarCloseBtn" type="button" aria-label="Close panel">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
         </div>
         
         <div class="content">
@@ -360,10 +532,15 @@
                 <div class="stat-sub" id="distValue">--</div>
             </div>
         </div>
-    </div>
+    </aside>
+
+    <div class="backdrop" id="backdrop"></div>
 
     <div id="map-container">
         <div id="map"></div>
+        <button class="sidebar-open-btn" id="sidebarOpenBtn" type="button" aria-label="Open panel" title="Open panel">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+        </button>
         <button class="locate-control" id="mapLocateBtn" title="Find my location">
             <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>
         </button>
@@ -373,6 +550,42 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <script>
+        // ---------- Sidebar toggle (responsive) ----------
+        const MOBILE_BREAKPOINT = 768;
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('backdrop');
+
+        function isMobile() {
+            return window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches;
+        }
+
+        function setSidebarOpen(open) {
+            document.body.dataset.sidebarOpen = open ? 'true' : 'false';
+            // Leaflet needs a nudge so the map fills its new size after the
+            // sidebar slides in/out. Wait for the CSS transition (300ms).
+            setTimeout(() => map && map.invalidateSize(), 320);
+        }
+
+        // Initial state: open on desktop, closed on mobile
+        setSidebarOpen(!isMobile());
+
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            setSidebarOpen(document.body.dataset.sidebarOpen !== 'true');
+        });
+        document.getElementById('sidebarOpenBtn').addEventListener('click', () => setSidebarOpen(true));
+        document.getElementById('sidebarCloseBtn').addEventListener('click', () => setSidebarOpen(false));
+        backdrop.addEventListener('click', () => setSidebarOpen(false));
+
+        // Re-evaluate default when crossing the breakpoint (e.g. orientation change)
+        let wasMobile = isMobile();
+        window.addEventListener('resize', () => {
+            const nowMobile = isMobile();
+            if (nowMobile !== wasMobile) {
+                setSidebarOpen(!nowMobile);
+                wasMobile = nowMobile;
+            }
+        });
+
         // Limpopo center coordinates (Polokwane)
         const map = L.map('map').setView([-23.9045, 29.4689], 8);
 
