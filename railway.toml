@@ -5,12 +5,13 @@ dockerfilePath = "Dockerfile"
 [deploy]
 startCommand = ""
 restartPolicyType = "on_failure"
-healthcheckPath = "/ors/v2/health"
-# First-time graph build + CH/LM preprocessing for the Limpopo extract can
-# take well over 5 minutes. 1800s (30 min) is generous; once the volume has
-# warm graphs, subsequent restarts only need to load (a few seconds) and the
-# timeout is irrelevant.
-healthcheckTimeout = 1800
+# Intentionally NO healthcheckPath. The previous working deploy had none, and
+# adding /ors/v2/health caused every redeploy to fail: ORS returns 503 on that
+# endpoint while it does CH/LM preprocessing in the background after profile
+# load, which can take much longer than any reasonable healthcheck window.
+# Without an HTTP healthcheck, Railway marks the deploy ACTIVE as soon as the
+# container is up; ORS finishes preprocessing on its own time and starts
+# serving routes when ready.
 
 [env]
 PORT = "8082"
