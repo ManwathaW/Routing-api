@@ -13,10 +13,8 @@ ENV ORS_CONFIG_LOCATION=/home/ors/config/ors-config.yml
 # HillIndexGraphStorageBuilder errors at load time. Set to True for ONE
 # deploy to clear and rebuild, then flip back to False.
 ENV REBUILD_GRAPHS=True
-# Tuned for Railway hobby plan. railway.toml [env] also pins these (and wins
-# over Dockerfile ENV at runtime). Anything larger than XMX=400m gets the JVM
-# OOM-killed by the container even when heap "Used" looks fine, because
-# native + metaspace + GC overhead push real RSS past the container limit.
-ENV XMS=200m
-ENV XMX=400m
+# railway.toml [env] pins these (and wins over Dockerfile ENV at runtime).
+# XMX=1g lets graph build complete on the Limpopo extract; smaller heap OOMs.
+ENV XMS=256m
+ENV XMX=1g
 ENV CONTAINER_LOG_LEVEL=INFO

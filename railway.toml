@@ -6,17 +6,18 @@ dockerfilePath = "Dockerfile"
 startCommand = ""
 restartPolicyType = "on_failure"
 healthcheckPath = "/ors/v2/health"
-# ORS rebuilds graphs from the Limpopo PBF on every Railway deploy (~3-5 min).
-# 600s gives generous buffer; the previous 300s was right at the edge.
-healthcheckTimeout = 600
+# First-time graph build + CH/LM preprocessing for the Limpopo extract can
+# take well over 5 minutes. 1800s (30 min) is generous; once the volume has
+# warm graphs, subsequent restarts only need to load (a few seconds) and the
+# timeout is irrelevant.
+healthcheckTimeout = 1800
 
 [env]
 PORT = "8082"
-# These override the Dockerfile ENV values. The working production deploy
-# ran with XMS=200m / XMX=400m — anything larger gets the JVM OOM-killed by
-# the container even when "heap Used" shows headroom (native + metaspace +
-# GC overhead push real RSS past the container limit). Don't raise these
-# without upgrading the Railway plan.
-XMS = "200m"
-XMX = "400m"
+# XMX=400m OOMs during PBF graph build (visible in deploy logs as
+# OutOfMemoryError mid-build). 1g gives the build room to complete; the
+# Railway project is on a usage-based plan with enough container memory
+# to hold a 1 GB heap plus JVM overhead.
+XMS = "256m"
+XMX = "1g"
 CONTAINER_LOG_LEVEL = "INFO"
