@@ -1,0 +1,214 @@
+{
+  "info": {
+    "name": "Limpopo Routing API (OpenRouteService)",
+    "description": "Pre-built requests for the self-hosted OpenRouteService instance at routing-api-production-e9c5.up.railway.app.\n\n**Coverage:** Limpopo (driving-car + foot-walking)\n**Auth:** None — public endpoint\n**Coordinate order:** longitude, latitude (NOT lat, lng — easy to flip)\n\nChange the `baseUrl` and `profile` variables (collection-level) to test other environments or profiles.\n\nReference: https://giscience.github.io/openrouteservice/api-reference/",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://routing-api-production-e9c5.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "profile",
+      "value": "driving-car",
+      "type": "string",
+      "description": "driving-car | foot-walking"
+    }
+  ],
+  "item": [
+    {
+      "name": "Service",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "health"]
+            },
+            "description": "Returns {\"status\":\"ready\"} when profiles are loaded."
+          }
+        },
+        {
+          "name": "Status (profiles + build info)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "status"]
+            },
+            "description": "Shows which profiles are loaded, PBF version, build date."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Directions",
+      "item": [
+        {
+          "name": "GET — Polokwane → Tzaneen (driving)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/directions/{{profile}}?start=29.4689,-23.9045&end=30.1633,-23.8333",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "directions", "{{profile}}"],
+              "query": [
+                { "key": "start", "value": "29.4689,-23.9045", "description": "Polokwane (lon,lat)" },
+                { "key": "end",   "value": "30.1633,-23.8333", "description": "Tzaneen (lon,lat)" }
+              ]
+            },
+            "description": "Simple GET routing. Returns GeoJSON with route geometry, distance, duration, and turn-by-turn segments."
+          }
+        },
+        {
+          "name": "GET — Polokwane → Mokopane (driving)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/directions/{{profile}}?start=29.4689,-23.9045&end=29.0156,-24.1944",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "directions", "{{profile}}"],
+              "query": [
+                { "key": "start", "value": "29.4689,-23.9045" },
+                { "key": "end",   "value": "29.0156,-24.1944" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST — full options (GeoJSON)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/geo+json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coordinates\": [\n    [29.4689, -23.9045],\n    [30.1633, -23.8333]\n  ],\n  \"instructions\": true,\n  \"preference\": \"fastest\",\n  \"units\": \"km\",\n  \"language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/directions/{{profile}}/geojson",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "directions", "{{profile}}", "geojson"]
+            },
+            "description": "Full-featured POST with turn-by-turn instructions, route preference, units, and language. Other preferences: shortest, recommended."
+          }
+        },
+        {
+          "name": "POST — multiple waypoints",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/geo+json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coordinates\": [\n    [29.4689, -23.9045],\n    [29.0156, -24.1944],\n    [30.1633, -23.8333]\n  ],\n  \"instructions\": true,\n  \"units\": \"km\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/directions/{{profile}}/geojson",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "directions", "{{profile}}", "geojson"]
+            },
+            "description": "Routes through Polokwane → Mokopane → Tzaneen. Add as many waypoints as you need."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Matrix (distance/time between many points)",
+      "item": [
+        {
+          "name": "POST — 3×3 matrix",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locations\": [\n    [29.4689, -23.9045],\n    [30.1633, -23.8333],\n    [29.0156, -24.1944]\n  ],\n  \"metrics\": [\"distance\", \"duration\"],\n  \"units\": \"km\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/matrix/{{profile}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "matrix", "{{profile}}"]
+            },
+            "description": "Returns N×N grids of distances and durations between every pair of locations. Useful for VRPs, nearest-stop lookups, etc."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Isochrones (reachability polygons)",
+      "item": [
+        {
+          "name": "POST — 10/20/30 min from Polokwane",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/geo+json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locations\": [[29.4689, -23.9045]],\n  \"range\": [600, 1200, 1800],\n  \"range_type\": \"time\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/isochrones/{{profile}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "isochrones", "{{profile}}"]
+            },
+            "description": "Polygons covering everywhere reachable in 10, 20, 30 minutes by driving from Polokwane. Switch range_type to \"distance\" and pass metres for distance-based reachability."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Snap to road",
+      "item": [
+        {
+          "name": "POST — snap a point",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locations\": [[29.4689, -23.9045]],\n  \"radius\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ors/v2/snap/{{profile}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["ors", "v2", "snap", "{{profile}}"]
+            },
+            "description": "Returns the nearest routable point on the road network within `radius` metres. Useful for cleaning GPS pings before routing."
+          }
+        }
+      ]
+    }
+  ]
+}
