@@ -35,7 +35,8 @@ Two collection variables you can override per-environment:
 - **No auth required** — the instance is open.
 - **Coordinate order is `longitude, latitude`** (not the usual lat,lng). The sample requests all have the right order — copy the structure when adding new ones.
 - **Coverage is currently Limpopo only.** Requests with start/end outside that region will fail with `Could not find routable point`. We'll lift this when the country-wide map switch lands.
-- For drawable responses (route lines on a map), use `Accept: application/geo+json`. For plain data, use `Accept: application/json`.
+- **`GET /directions/{profile}` only serves `application/geo+json`.** Sending `Accept: application/json` to that endpoint returns 406. The POST `/geojson` variants accept both. (Easier rule: use `Accept: application/geo+json` everywhere routing-related.)
+- **Isochrones default to `maximum_intervals: 1`.** `range` can only hold one value per request on this instance — fire one request per band, or bump `maximum_intervals` in `ors-config.yml` and redeploy.
 
 ### Reference
 

@@ -61,7 +61,7 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              { "key": "Accept", "value": "application/geo+json" }
             ],
             "url": {
               "raw": "{{baseUrl}}/ors/v2/directions/{{profile}}?start=29.4689,-23.9045&end=30.1633,-23.8333",
@@ -72,7 +72,7 @@
                 { "key": "end",   "value": "30.1633,-23.8333", "description": "Tzaneen (lon,lat)" }
               ]
             },
-            "description": "Simple GET routing. Returns GeoJSON with route geometry, distance, duration, and turn-by-turn segments."
+            "description": "Simple GET routing. Returns GeoJSON with route geometry, distance, duration, and turn-by-turn segments.\n\n**Gotcha:** the GET endpoint only serves `application/geo+json`. Sending `Accept: application/json` returns 406."
           }
         },
         {
@@ -80,7 +80,7 @@
           "request": {
             "method": "GET",
             "header": [
-              { "key": "Accept", "value": "application/json" }
+              { "key": "Accept", "value": "application/geo+json" }
             ],
             "url": {
               "raw": "{{baseUrl}}/ors/v2/directions/{{profile}}?start=29.4689,-23.9045&end=29.0156,-24.1944",
@@ -173,14 +173,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"locations\": [[29.4689, -23.9045]],\n  \"range\": [600, 1200, 1800],\n  \"range_type\": \"time\"\n}"
+              "raw": "{\n  \"locations\": [[29.4689, -23.9045]],\n  \"range\": [1200],\n  \"range_type\": \"time\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/ors/v2/isochrones/{{profile}}",
               "host": ["{{baseUrl}}"],
               "path": ["ors", "v2", "isochrones", "{{profile}}"]
             },
-            "description": "Polygons covering everywhere reachable in 10, 20, 30 minutes by driving from Polokwane. Switch range_type to \"distance\" and pass metres for distance-based reachability."
+            "description": "Polygon covering everywhere reachable in 20 minutes by driving from Polokwane.\n\n**Server limit:** this instance is currently configured with `maximum_intervals: 1` (the ORS default), so `range` can only hold one value. To request multiple bands (e.g. 10/20/30 min) you'd need to either bump `maximum_intervals` in `ors-config.yml` or fire one request per interval. Switch `range_type` to `\"distance\"` and pass metres for distance-based reachability."
           }
         }
       ]
